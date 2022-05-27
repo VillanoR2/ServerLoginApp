@@ -17,7 +17,7 @@ namespace ServerLoginApp.Migrations
                     Apellido = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Rol = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Departamento = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Telefono = table.Column<int>(type: "int", nullable: false),
+                    Telefono = table.Column<int>(type: "nvarchar(10)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BindAlias = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },

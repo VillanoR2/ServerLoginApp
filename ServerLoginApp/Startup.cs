@@ -1,7 +1,9 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using ServerLoginApp.Data;
+using ServerLoginApp.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,10 +40,32 @@ namespace ServerLoginApp
             services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
+            IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
+            services.AddSingleton(mapper);
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            services.AddScoped<IUsuario, UsuarioRepositorio>();
+            services.AddTransient<IUsuario, UsuarioRepositorio>();
+
+            services.AddHttpContextAccessor();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ServerLoginApp", Version = "v1" });
+            });
+            services.AddMvc(options =>
+            {
+                options.AllowEmptyInputInBodyModelBinding = true;
+                foreach (var formatter in options.InputFormatters)
+                {
+                    if (formatter.GetType() == typeof(SystemTextJsonInputFormatter))
+                        ((SystemTextJsonInputFormatter)formatter).SupportedMediaTypes.Add(
+                        Microsoft.Net.Http.Headers.MediaTypeHeaderValue.Parse("text/plain"));
+                }
+            }).AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             });
         }
 
@@ -67,6 +92,7 @@ namespace ServerLoginApp
             {
                 endpoints.MapControllers();
             });
+
         }
     }
 }

@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServerLoginApp.Data;
+using ServerLoginApp.Interfaces;
 using ServerLoginApp.Modelos;
+using ServerLoginApp.Modelos.Dto;
 
 namespace ServerLoginApp.Controllers
 {
@@ -14,95 +16,120 @@ namespace ServerLoginApp.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUsuario _usuario;
+        protected ResponseDto _response;
 
-        public UsuariosController(ApplicationDbContext context)
+        public UsuariosController(IUsuario usuario)
         {
-            _context = context;
+            _usuario = usuario;
+            _response = new ResponseDto();
         }
 
         // GET: api/Usuarios
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
         {
-            return await _context.Usuarios.ToListAsync();
+            try
+            {
+                var lista = await _usuario.GetUsuarios();
+                _response.Result = lista;
+                _response.DisplayMessage = "Lista de Usuarios";
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { ex.ToString() };
+            }
+
+            return Ok(_response);
         }
 
         // GET: api/Usuarios/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Usuario>> GetUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-
-            if (usuario == null)
+            var usuario = await _usuario.GetUsuarioById(id);
+            if(usuario == null)
             {
-                return NotFound();
+                _response.IsSuccess = false;
+                _response.DisplayMessage = "Usuario no existe";
+                return NotFound(_response);
             }
 
-            return usuario;
+            _response.Result = usuario;
+            _response.DisplayMessage = "Informacion de Usuario";
+            return Ok(_response);
         }
 
         // PUT: api/Usuarios/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(int id, Usuario usuario)
+        public async Task<IActionResult> PutUsuario(int id, UsuarioDto usuarioDto)
         {
-            if (id != usuario.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(usuario).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                UsuarioDto model = await _usuario.CreateUpdate(usuarioDto);
+                _response.Result = model;
+                return Ok(_response);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!UsuarioExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                _response.IsSuccess = false;
+                _response.DisplayMessage = "Error Al Actualizar el Registro";
+                _response.ErrorMessages = new List<string> { ex.ToString() };
+                return BadRequest(_response);
             }
-
-            return NoContent();
         }
 
         // POST: api/Usuarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
+        public async Task<ActionResult<Usuario>> PostUsuario([FromBody]UsuarioDto usuarioDto)
         {
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUsuario", new { id = usuario.Id }, usuario);
+            try
+            {
+                UsuarioDto model = await _usuario.CreateUpdate(usuarioDto);
+                _response.Result = model;
+                return CreatedAtAction("GetUsuario", new { id = model.Id }, _response);
+
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.DisplayMessage = "Error Al Actualizar el Registro";
+                _response.ErrorMessages = new List<string> { ex.ToString() };
+                return BadRequest(_response);
+            }
+
         }
 
         // DELETE: api/Usuarios/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
+            try
             {
-                return NotFound();
+                bool estaEliminado = await _usuario.DeleteUsuario(id);
+                if (estaEliminado)
+                {
+                    _response.Result = estaEliminado;
+                    _response.DisplayMessage = "Usuario eliminado con exito";
+                    return Ok(_response);
+                }
+                else
+                {
+                    _response.IsSuccess = false;
+                    _response.DisplayMessage = "Error al eliminar el Registro";
+                    return BadRequest(_response);
+                }
             }
-
-            _context.Usuarios.Remove(usuario);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UsuarioExists(int id)
-        {
-            return _context.Usuarios.Any(e => e.Id == id);
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { ex.ToString() };
+                return BadRequest(_response);
+            }
         }
     }
 }

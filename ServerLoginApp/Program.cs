@@ -22,5 +22,6 @@ namespace ServerLoginApp
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
     }
 }
