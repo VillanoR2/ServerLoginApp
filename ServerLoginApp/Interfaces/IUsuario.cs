@@ -10,6 +10,7 @@ namespace ServerLoginApp.Interfaces
         Task<UsuarioDto> GetUsuarioById (int id);
         Task<UsuarioDto> CreateUpdate (UsuarioDto usuarioDto);
         Task<bool> DeleteUsuario (int id);
+        Task<UsuarioDto> GetUsuarioByBindAlias(string bindAlias);
 
     }
 }

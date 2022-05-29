@@ -36,6 +36,8 @@ namespace ServerLoginApp.Interfaces
             return _mapper.Map<Usuario, UsuarioDto>(usuario);
         }
 
+
+
         public async Task<bool> DeleteUsuario(int id)
         {
             try
@@ -68,6 +70,19 @@ namespace ServerLoginApp.Interfaces
             List<Usuario> usuarioList = await _db.Usuarios.ToListAsync();
 
             return _mapper.Map<List<UsuarioDto>>(usuarioList);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bindAlias"></param>
+        /// <returns><see cref="Usuario"/> por <paramref name="bindAlias"/>.
+        /// Regresa NULL si no existe. </returns>
+        public async Task<UsuarioDto> GetUsuarioByBindAlias(string bindAlias)
+        {
+            Usuario usuario = await _db.Usuarios.FirstOrDefaultAsync(usuario => usuario.BindAlias == bindAlias);
+
+            return _mapper.Map<UsuarioDto>(usuario);
         }
     }
 }
