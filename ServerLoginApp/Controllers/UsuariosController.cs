@@ -84,7 +84,7 @@ namespace ServerLoginApp.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [ActionName("register")]
         [HttpPost]
-        public async Task<ActionResult<Usuario>> PostRegisterUsuario([FromBody]string authCode, [FromBody] UsuarioDto usuarioDto)
+        public async Task<ActionResult<Usuario>> PostRegisterUsuario(string authCode, [FromBody] UsuarioDto usuarioDto)
         {
 
             BindIdManager bindIdManager = new BindIdManager();

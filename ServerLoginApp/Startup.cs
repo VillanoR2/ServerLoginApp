@@ -83,7 +83,6 @@ namespace ServerLoginApp
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
 
             app.UseAuthorization();

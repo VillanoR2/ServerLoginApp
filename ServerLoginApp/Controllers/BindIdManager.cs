@@ -35,7 +35,7 @@ namespace ServerLoginApp.Controllers
             {
                 Code = authCode
      ,
-                RedirectUri = "https://loginapp-three.vercel.app/user"
+                RedirectUri = "http://187.132.51.233:8080/login;"
      ,
                 ClientId = CLIENTID
      ,
